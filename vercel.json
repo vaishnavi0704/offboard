@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/offboard/:recordId",
+      "destination": "/offboard/[recordId]"
+    },
+    {
+      "source": "/interview/:recordId",
+      "destination": "/interview/[recordId]"
+    }
+  ]
+}
