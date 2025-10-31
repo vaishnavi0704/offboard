@@ -5,8 +5,6 @@ import jsPDF from 'jspdf';
 const AIRTABLE_API_KEY = process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
 const BASE_ID = 'appnmmjs033rxHQNC';
 const TABLE_ID = 'tblaEGXgtp9nX1bgH';
-const TRANSCRIPT_FIELD_ID = 'fldyvJBs5YOuOUSMp';
-const STATUS_FIELD_ID = 'fld7ocoq2QcCBuvKa';
 
 export default async function handler(
   req: NextApiRequest,
@@ -19,7 +17,7 @@ export default async function handler(
   try {
     const { recordId, candidateName, transcript, interviewDate } = req.body;
 
-    console.log('📄 Generating PDF transcript...');
+    console.log('📄 Generating PDF transcript for:', candidateName);
 
     // Create PDF
     const pdf = new jsPDF();
@@ -53,9 +51,8 @@ export default async function handler(
       
       // Speaker
       pdf.setFont('helvetica', 'bold');
-      const speakerColor = msg.speaker === 'assistant' ? [102, 126, 234] : [16, 185, 129];
-      // pdf.setTextColor(...speakerColor);
-      pdf.text(msg.speaker === 'assistant' ? 'AI Interviewer' : 'Candidate', 20, yPosition);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(msg.speaker === 'assistant' ? 'AI Interviewer:' : 'Candidate:', 20, yPosition);
       
       // Timestamp
       pdf.setFont('helvetica', 'normal');
@@ -106,8 +103,19 @@ export default async function handler(
     
     console.log('✅ PDF uploaded:', blob.url);
     
-    // Update Airtable
+    // Update Airtable with field IDs
+    console.log('📝 Updating Airtable record:', recordId);
+    
     const airtableUrl = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}/${recordId}`;
+    
+    const updatePayload = {
+      fields: {
+        'fldyvJBs5YOuOUSMp': blob.url,  // Interview Transcript Report field
+        'fld7ocoq2QcCBuvKa': 'Interview Completed',  // Offboarding Status field
+      },
+    };
+
+    console.log('📦 Update payload:', JSON.stringify(updatePayload, null, 2));
     
     const airtableResponse = await fetch(airtableUrl, {
       method: 'PATCH',
@@ -115,23 +123,25 @@ export default async function handler(
         'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        fields: {
-          [TRANSCRIPT_FIELD_ID]: blob.url,
-          [STATUS_FIELD_ID]: 'Interview Completed',
-        },
-      }),
+      body: JSON.stringify(updatePayload),
     });
     
+    const airtableData = await airtableResponse.json();
+    
     if (airtableResponse.ok) {
-      console.log('✅ Airtable updated');
+      console.log('✅ Airtable updated successfully');
+      console.log('📋 Updated fields:', airtableData);
     } else {
-      console.log('⚠️ Airtable update failed');
+      console.error('❌ Airtable update failed');
+      console.error('Status:', airtableResponse.status);
+      console.error('Response:', airtableData);
     }
     
     return res.status(200).json({
       success: true,
       pdfUrl: blob.url,
+      airtableUpdated: airtableResponse.ok,
+      message: 'Transcript generated and uploaded successfully',
     });
     
   } catch (error: any) {
