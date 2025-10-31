@@ -18,6 +18,7 @@ export default async function handler(
     const { recordId, candidateName, transcript, interviewDate } = req.body;
 
     console.log('📄 Generating PDF transcript for:', candidateName);
+    console.log('🆔 Record ID:', recordId);
 
     // Create PDF
     const pdf = new jsPDF();
@@ -103,15 +104,23 @@ export default async function handler(
     
     console.log('✅ PDF uploaded:', blob.url);
     
-    // Update Airtable with field IDs
+    // Update Airtable - ATTACHMENT FIELD REQUIRES ARRAY OF OBJECTS
     console.log('📝 Updating Airtable record:', recordId);
+    console.log('🔑 API Key exists:', !!AIRTABLE_API_KEY);
+    console.log('🔑 API Key prefix:', AIRTABLE_API_KEY?.substring(0, 15));
     
     const airtableUrl = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}/${recordId}`;
+    console.log('🌐 Airtable URL:', airtableUrl);
     
+    // CRITICAL: Attachment fields need array format with url property
     const updatePayload = {
       fields: {
-        'fldyvJBs5YOuOUSMp': blob.url,  // Interview Transcript Report field
-        'fld7ocoq2QcCBuvKa': 'Interview Completed',  // Offboarding Status field
+        'fldyvJBs5YOuOUSMp': [
+          {
+            url: blob.url,
+          }
+        ],
+        'fld7ocoq2QcCBuvKa': 'Interview Completed',
       },
     };
 
@@ -126,21 +135,52 @@ export default async function handler(
       body: JSON.stringify(updatePayload),
     });
     
-    const airtableData = await airtableResponse.json();
+    const responseText = await airtableResponse.text();
+    console.log('📥 Airtable response status:', airtableResponse.status);
+    console.log('📥 Airtable response:', responseText);
+    
+    let airtableData;
+    try {
+      airtableData = JSON.parse(responseText);
+    } catch (e) {
+      airtableData = responseText;
+    }
     
     if (airtableResponse.ok) {
       console.log('✅ Airtable updated successfully');
-      console.log('📋 Updated fields:', airtableData);
+      console.log('📋 Updated record:', airtableData);
     } else {
       console.error('❌ Airtable update failed');
-      console.error('Status:', airtableResponse.status);
-      console.error('Response:', airtableData);
+      console.error('❌ Status:', airtableResponse.status);
+      console.error('❌ Error:', airtableData);
+      
+      // Try alternative update without attachment
+      console.log('🔄 Trying to update status only...');
+      
+      const statusOnlyResponse = await fetch(airtableUrl, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fields: {
+            'fld7ocoq2QcCBuvKa': 'Interview Completed',
+          },
+        }),
+      });
+      
+      if (statusOnlyResponse.ok) {
+        console.log('✅ Status updated successfully (without attachment)');
+      }
     }
     
     return res.status(200).json({
       success: true,
       pdfUrl: blob.url,
       airtableUpdated: airtableResponse.ok,
+      airtableStatus: airtableResponse.status,
+      airtableError: airtableResponse.ok ? null : airtableData,
       message: 'Transcript generated and uploaded successfully',
     });
     
@@ -149,6 +189,7 @@ export default async function handler(
     return res.status(500).json({
       error: 'Failed to generate transcript',
       details: error.message,
+      stack: error.stack,
     });
   }
 }
