@@ -74,7 +74,7 @@ export function Conversation({
           <p>💡 <strong>Tips:</strong></p>
           <ul style={styles.helpList}>
             <li>Allow camera and microphone access when prompted</li>
-            <li>Ensure you're in a quiet environment</li>
+            <li>Ensure you&apos;re in a quiet environment</li>
             <li>Speak clearly and naturally</li>
           </ul>
         </div>

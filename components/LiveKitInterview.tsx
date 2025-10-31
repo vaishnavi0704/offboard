@@ -20,7 +20,6 @@ export function LiveKitInterview({
 
   useEffect(() => {
     if (conversationId) {
-      // Use provided URL or construct default
       const url = providedUrl || `https://tavus.io/c/${conversationId}`;
       setConversationUrl(url);
       console.log('🎥 Interview URL:', url);
@@ -36,7 +35,6 @@ export function LiveKitInterview({
 
     console.log('🚀 Opening interview:', conversationUrl);
     
-    // Open in new tab/window
     const newWindow = window.open(
       conversationUrl, 
       'tavus_interview', 
@@ -45,8 +43,6 @@ export function LiveKitInterview({
 
     if (newWindow) {
       setIsOpened(true);
-      
-      // Focus the new window
       newWindow.focus();
     } else {
       setError('Please allow pop-ups for this site to start the interview');
@@ -103,9 +99,9 @@ export function LiveKitInterview({
             <div style={styles.tips}>
               <p style={styles.tipsTitle}>💡 Before you start:</p>
               <ul style={styles.tipsList}>
-                <li>✓ Click "Allow" when prompted for camera and microphone access</li>
-                <li>✓ Ensure you're in a quiet, well-lit environment</li>
-                <li>✓ Speak clearly and naturally - it's a conversation, not a test</li>
+                <li>✓ Click &quot;Allow&quot; when prompted for camera and microphone access</li>
+                <li>✓ Ensure you&apos;re in a quiet, well-lit environment</li>
+                <li>✓ Speak clearly and naturally - it&apos;s a conversation, not a test</li>
                 <li>✓ The AI knows about your role and projects</li>
                 <li>✓ Interview duration: 10-15 minutes</li>
               </ul>
@@ -115,7 +111,7 @@ export function LiveKitInterview({
               <details style={styles.details}>
                 <summary style={styles.summary}>Having trouble? Click here</summary>
                 <div style={styles.detailsContent}>
-                  <p style={{ marginBottom: '12px' }}>If the interview doesn't open automatically:</p>
+                  <p style={{ marginBottom: '12px' }}>If the interview doesn&apos;t open automatically:</p>
                   <ol style={{ paddingLeft: '20px', lineHeight: '1.8' }}>
                     <li>Check if pop-ups are blocked by your browser</li>
                     <li>Use the direct link below</li>
@@ -155,7 +151,7 @@ export function LiveKitInterview({
                 <li>Complete your interview with the AI in the opened window</li>
                 <li>Answer all questions honestly and thoroughly</li>
                 <li>When the AI thanks you and ends the session, return here</li>
-                <li>Click "End Interview & Submit" button on the right to save your transcript</li>
+                <li>Click &quot;End Interview & Submit&quot; button on the right to save your transcript</li>
               </ol>
             </div>
 
