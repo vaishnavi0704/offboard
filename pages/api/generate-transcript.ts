@@ -3,8 +3,10 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import jsPDF from 'jspdf';
 
 const AIRTABLE_API_KEY = process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
-const BASE_ID = 'appnmmjs033rxHQNC';
-const TABLE_ID = 'tblaEGXgtp9nX1bgH';
+const BASE_ID = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
+const TABLE_ID = process.env.NEXT_PUBLIC_AIRTABLE_TABLE_ID;
+const TRANSCRIPT_FIELD_ID = process.env.AIRTABLE_TRANSCRIPT_FIELD_ID;
+const STATUS_FIELD_ID = process.env.AIRTABLE_STATUS_FIELD_ID;
 
 export default async function handler(
   req: NextApiRequest,
@@ -19,11 +21,11 @@ export default async function handler(
 
     console.log('📄 Generating PDF transcript for:', candidateName);
     console.log('🆔 Record ID:', recordId);
+    console.log('📝 Transcript messages:', transcript.length);
 
-    // Create PDF
+    // Create PDF (same as before)
     const pdf = new jsPDF();
     
-    // Header
     pdf.setFontSize(20);
     pdf.setFont('helvetica', 'bold');
     pdf.text('Exit Interview Transcript', 20, 20);
@@ -37,7 +39,6 @@ export default async function handler(
     pdf.setLineWidth(0.5);
     pdf.line(20, 55, 190, 55);
     
-    // Transcript content
     let yPosition = 65;
     const pageHeight = pdf.internal.pageSize.height;
     const lineHeight = 7;
@@ -50,19 +51,16 @@ export default async function handler(
         yPosition = 20;
       }
       
-      // Speaker
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(0, 0, 0);
       pdf.text(msg.speaker === 'assistant' ? 'AI Interviewer:' : 'Candidate:', 20, yPosition);
       
-      // Timestamp
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(128, 128, 128);
       pdf.text(new Date(msg.timestamp).toLocaleTimeString(), 190, yPosition, { align: 'right' });
       
       yPosition += lineHeight;
       
-      // Message
       pdf.setTextColor(0, 0, 0);
       const lines = pdf.splitTextToSize(msg.content, 170);
       lines.forEach((line: string) => {
@@ -77,7 +75,6 @@ export default async function handler(
       yPosition += 5;
     });
     
-    // Footer
     const totalPages = pdf.getNumberOfPages();
     for (let i = 1; i <= totalPages; i++) {
       pdf.setPage(i);
@@ -91,12 +88,10 @@ export default async function handler(
       );
     }
     
-    // Convert to buffer
     const pdfBuffer = Buffer.from(pdf.output('arraybuffer'));
     
     console.log('📤 Uploading to Vercel Blob...');
     
-    // Upload to Blob
     const blob = await put(`transcripts/${recordId}_${Date.now()}.pdf`, pdfBuffer, {
       access: 'public',
       contentType: 'application/pdf',
@@ -104,23 +99,15 @@ export default async function handler(
     
     console.log('✅ PDF uploaded:', blob.url);
     
-    // Update Airtable - ATTACHMENT FIELD REQUIRES ARRAY OF OBJECTS
-    console.log('📝 Updating Airtable record:', recordId);
-    console.log('🔑 API Key exists:', !!AIRTABLE_API_KEY);
-    console.log('🔑 API Key prefix:', AIRTABLE_API_KEY?.substring(0, 15));
+    // Update Airtable using env variables
+    console.log('📝 Updating Airtable with field IDs from env...');
     
     const airtableUrl = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}/${recordId}`;
-    console.log('🌐 Airtable URL:', airtableUrl);
     
-    // CRITICAL: Attachment fields need array format with url property
     const updatePayload = {
       fields: {
-        'fldyvJBs5YOuOUSMp': [
-          {
-            url: blob.url,
-          }
-        ],
-        'fld7ocoq2QcCBuvKa': 'Interview Completed',
+        [TRANSCRIPT_FIELD_ID!]: [{ url: blob.url }],
+        [STATUS_FIELD_ID!]: 'Interview Completed',
       },
     };
 
@@ -137,51 +124,17 @@ export default async function handler(
     
     const responseText = await airtableResponse.text();
     console.log('📥 Airtable response status:', airtableResponse.status);
-    console.log('📥 Airtable response:', responseText);
-    
-    let airtableData;
-    try {
-      airtableData = JSON.parse(responseText);
-    } catch (e) {
-      airtableData = responseText;
-    }
     
     if (airtableResponse.ok) {
       console.log('✅ Airtable updated successfully');
-      console.log('📋 Updated record:', airtableData);
     } else {
-      console.error('❌ Airtable update failed');
-      console.error('❌ Status:', airtableResponse.status);
-      console.error('❌ Error:', airtableData);
-      
-      // Try alternative update without attachment
-      console.log('🔄 Trying to update status only...');
-      
-      const statusOnlyResponse = await fetch(airtableUrl, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fields: {
-            'fld7ocoq2QcCBuvKa': 'Interview Completed',
-          },
-        }),
-      });
-      
-      if (statusOnlyResponse.ok) {
-        console.log('✅ Status updated successfully (without attachment)');
-      }
+      console.error('❌ Airtable update failed:', responseText);
     }
     
     return res.status(200).json({
       success: true,
       pdfUrl: blob.url,
       airtableUpdated: airtableResponse.ok,
-      airtableStatus: airtableResponse.status,
-      airtableError: airtableResponse.ok ? null : airtableData,
-      message: 'Transcript generated and uploaded successfully',
     });
     
   } catch (error: any) {
@@ -189,7 +142,6 @@ export default async function handler(
     return res.status(500).json({
       error: 'Failed to generate transcript',
       details: error.message,
-      stack: error.stack,
     });
   }
 }

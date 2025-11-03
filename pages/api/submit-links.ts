@@ -2,20 +2,16 @@ import { put } from '@vercel/blob';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 const AIRTABLE_API_KEY = process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
-const BASE_ID = 'appnmmjs033rxHQNC';
-const TABLE_ID = 'tblaEGXgtp9nX1bgH';
+const BASE_ID = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
+const TABLE_ID = process.env.NEXT_PUBLIC_AIRTABLE_TABLE_ID;
 
-// Correct Field IDs from your Airtable
-const FIELD_IDS = {
-  githubLinks: 'fldMTTiJus29t4G7d',
-  driveLinks: 'fldyvzN8hmbR8ydgQ',
-  otherLinks: 'fldlvG092SgFdtL0j',
-  githubProjectDesc: 'flddtRbkYyTsA8keT',
-  driveProjectDesc: 'fldrDAZ8asDV5jJT0',
-  otherProjectDesc: 'fldZsYCOx02BKyEUH',
-  offboardingStatus: 'fldXXXXXXXXXXXXXX', // Replace with actual field ID
-  blobStorageURL: 'fldXXXXXXXXXXXXXX', // Replace with actual field ID
-};
+// Use env variables for field IDs
+const GITHUB_LINKS_FIELD = process.env.NEXT_PUBLIC_FIELD_GITHUB_LINKS;
+const DRIVE_LINKS_FIELD = process.env.NEXT_PUBLIC_FIELD_DRIVE_LINKS;
+const OTHER_LINKS_FIELD = process.env.NEXT_PUBLIC_FIELD_OTHER_LINKS;
+const GITHUB_DESC_FIELD = process.env.AIRTABLE_GITHUB_DESC_FIELD_ID;
+const DRIVE_DESC_FIELD = process.env.AIRTABLE_DRIVE_DESC_FIELD_ID;
+const OTHER_DESC_FIELD = process.env.AIRTABLE_OTHER_DESC_FIELD_ID;
 
 export default async function handler(
   req: NextApiRequest,
@@ -26,25 +22,7 @@ export default async function handler(
   }
 
   try {
-    const { 
-      recordId, 
-      githubLinks, 
-      driveLinks, 
-      otherLinks,
-      githubDescriptions,
-      driveDescriptions,
-      otherDescriptions,
-      candidateName 
-    } = req.body;
-
-    console.log('📥 Received submission:', { recordId, candidateName });
-
-    if (!recordId) {
-      return res.status(400).json({ error: 'Record ID is required' });
-    }
-
-    // Create JSON data for blob storage
-    const submissionData = {
+    const {
       recordId,
       candidateName,
       githubLinks,
@@ -53,87 +31,82 @@ export default async function handler(
       githubDescriptions,
       driveDescriptions,
       otherDescriptions,
-      submittedAt: new Date().toISOString(),
+    } = req.body;
+
+    console.log('📥 Received submission:', { recordId, candidateName });
+
+    // Store in Vercel Blob
+    console.log('📤 Uploading to Vercel Blob...');
+    const blobData = {
+      recordId,
+      candidateName,
+      timestamp: new Date().toISOString(),
+      githubLinks,
+      driveLinks,
+      otherLinks,
+      githubDescriptions,
+      driveDescriptions,
+      otherDescriptions,
     };
 
-    // Upload to Vercel Blob Storage
-    const blobFileName = `offboarding/${recordId}_${Date.now()}.json`;
-    console.log('📤 Uploading to Vercel Blob...');
-    
-    const blob = await put(blobFileName, JSON.stringify(submissionData, null, 2), {
-      access: 'public',
-      contentType: 'application/json',
-    });
+    const blob = await put(
+      `offboarding/${recordId}_${Date.now()}.json`,
+      JSON.stringify(blobData, null, 2),
+      {
+        access: 'public',
+        contentType: 'application/json',
+      }
+    );
 
     console.log('✅ Data stored in Vercel Blob:', blob.url);
 
-    // Now update Airtable with correct field IDs
-    const airtableUrl = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}/${recordId}`;
-    
+    // Update Airtable using field IDs from env
     console.log('📤 Updating Airtable...');
-    console.log('URL:', airtableUrl);
+    const airtableUrl = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}/${recordId}`;
 
-    const airtablePayload = {
+    const updatePayload = {
       fields: {
-        [FIELD_IDS.githubLinks]: githubLinks || '',
-        [FIELD_IDS.driveLinks]: driveLinks || '',
-        [FIELD_IDS.otherLinks]: otherLinks || '',
-        [FIELD_IDS.githubProjectDesc]: githubDescriptions || '',
-        [FIELD_IDS.driveProjectDesc]: driveDescriptions || '',
-        [FIELD_IDS.otherProjectDesc]: otherDescriptions || '',
+        [GITHUB_LINKS_FIELD!]: githubLinks || '',
+        [DRIVE_LINKS_FIELD!]: driveLinks || '',
+        [OTHER_LINKS_FIELD!]: otherLinks || '',
+        [GITHUB_DESC_FIELD!]: githubDescriptions || '',
+        [DRIVE_DESC_FIELD!]: driveDescriptions || '',
+        [OTHER_DESC_FIELD!]: otherDescriptions || '',
       },
     };
 
-    console.log('Payload:', JSON.stringify(airtablePayload, null, 2));
+    console.log('URL:', airtableUrl);
+    console.log('Payload:', JSON.stringify(updatePayload, null, 2));
 
     const airtableResponse = await fetch(airtableUrl, {
       method: 'PATCH',
       headers: {
-        'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+        Authorization: `Bearer ${AIRTABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(airtablePayload),
+      body: JSON.stringify(updatePayload),
     });
 
-    const responseText = await airtableResponse.text();
+    const airtableData = await airtableResponse.json();
     console.log('Airtable Response Status:', airtableResponse.status);
-    console.log('Airtable Response:', responseText);
+    console.log('Airtable Response:', JSON.stringify(airtableData));
 
     if (!airtableResponse.ok) {
-      let errorData;
-      try {
-        errorData = JSON.parse(responseText);
-      } catch {
-        errorData = { message: responseText };
-      }
-
-      console.error('❌ Airtable Error:', errorData);
-
-      // Data is still in blob storage
-      return res.status(200).json({
-        success: true,
-        warning: 'Data saved to Blob Storage but Airtable update failed',
-        blobUrl: blob.url,
-        airtableError: errorData,
-      });
+      throw new Error(JSON.stringify(airtableData));
     }
 
-    const airtableData = JSON.parse(responseText);
     console.log('✅ Airtable updated successfully');
 
     return res.status(200).json({
       success: true,
-      message: 'Data submitted successfully',
       blobUrl: blob.url,
       airtableData,
     });
-
   } catch (error: any) {
-    console.error('❌ Submission error:', error);
+    console.error('❌ Error:', error);
     return res.status(500).json({
       error: 'Failed to submit',
       details: error.message,
-      stack: error.stack,
     });
   }
 }

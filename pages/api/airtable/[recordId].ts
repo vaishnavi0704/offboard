@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 const AIRTABLE_API_KEY = process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
-const BASE_ID = 'appnmmjs033rxHQNC';
-const TABLE_ID = 'tblaEGXgtp9nX1bgH';
+const BASE_ID = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID || 'appnmmjs033rxHQNC';
+const TABLE_ID = process.env.NEXT_PUBLIC_AIRTABLE_TABLE_ID || 'tblaEGXgtp9nX1bgH';
 
 export default async function handler(
   req: NextApiRequest,
@@ -11,64 +11,65 @@ export default async function handler(
   const { recordId } = req.query;
 
   if (!recordId || typeof recordId !== 'string') {
-    return res.status(400).json({ error: 'Record ID required' });
+    return res.status(400).json({ error: 'Record ID is required' });
   }
 
-  const url = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}/${recordId}`;
+  try {
+    console.log('📥 Fetching record:', recordId);
 
-  if (req.method === 'GET') {
-    try {
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-        },
+    const url = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}/${recordId}`;
+
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Airtable error:', errorText);
+      return res.status(response.status).json({
+        error: 'Failed to fetch from Airtable',
+        details: errorText,
       });
-
-      if (!response.ok) throw new Error('Failed to fetch');
-
-      const data = await response.json();
-      const fields = data.fields;
-
-      return res.status(200).json({
-        id: data.id,
-        name: fields.Name || 'N/A',
-        email: fields.Email || 'N/A',
-        designation: fields.Designation || 'N/A',
-        domain: fields.Domain || 'N/A',
-      });
-    } catch (error) {
-      return res.status(500).json({ error: 'Failed to fetch' });
     }
+
+    const data = await response.json();
+    console.log('✅ Record fetched successfully');
+    console.log('📋 Available fields:', Object.keys(data.fields));
+
+    // Map Airtable fields - CRITICAL: Use EXACT field names from Airtable
+    const candidateData = {
+      id: data.id,
+      name: data.fields['Name'] || '',
+      email: data.fields['Email'] || '',
+      designation: data.fields['Designation'] || '',
+      domain: data.fields['Domain'] || '',
+      githubLinks: data.fields['GitHub Links'] || '',
+      driveLinks: data.fields['Google Drive Links'] || '',
+      otherLinks: data.fields['Other Platform Links'] || '',
+      
+      // CRITICAL FIX: Use EXACT field names - note "GIthub" not "GitHub"
+      githubProjectDesc: data.fields['GIthub Project Description'] || '',  // ← Note: "GIthub" with lowercase 'I'
+      driveProjectDesc: data.fields['Google Drive Project Description'] || '',
+      otherProjectDesc: data.fields['Other Project Description'] || '',
+    };
+
+    console.log('✅ Mapped candidate data:');
+    console.log('  - Name:', candidateData.name);
+    console.log('  - Designation:', candidateData.designation);
+    console.log('  - GitHub Links:', candidateData.githubLinks);
+    console.log('  - GitHub Desc:', candidateData.githubProjectDesc);
+    console.log('  - Drive Desc:', candidateData.driveProjectDesc);
+    console.log('  - Other Desc:', candidateData.otherProjectDesc);
+
+    return res.status(200).json(candidateData);
+
+  } catch (error: any) {
+    console.error('❌ Server error:', error);
+    return res.status(500).json({
+      error: 'Server error',
+      details: error.message,
+    });
   }
-
-  if (req.method === 'PATCH') {
-    try {
-      const { githubLinks, driveLinks, otherLinks } = req.body;
-
-      const response = await fetch(url, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fields: {
-            'GitHub Links': githubLinks || '',
-            'Google Drive Links': driveLinks || '',
-            'Other Links': otherLinks || '',
-            'Offboarding Status': 'Documentation Submitted',
-          },
-        }),
-      });
-
-      if (!response.ok) throw new Error('Failed to update');
-
-      const data = await response.json();
-      return res.status(200).json({ success: true, data });
-    } catch (error) {
-      return res.status(500).json({ error: 'Failed to update' });
-    }
-  }
-
-  return res.status(405).json({ error: 'Method not allowed' });
 }
