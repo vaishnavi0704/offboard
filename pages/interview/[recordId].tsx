@@ -75,6 +75,7 @@ export default function InterviewPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          recordId: recordId, // ADD THIS LINE
           candidateName: candidate.name,
           designation: candidate.designation,
           domain: candidate.domain,
@@ -100,14 +101,12 @@ export default function InterviewPage() {
       setConversationId(data.conversationId);
       setConversationUrl(data.conversationUrl);
       console.log('✅ Conversation ready:', data.conversationId);
-      console.log('🔗 URL:', data.conversationUrl);
 
     } catch (err: any) {
       console.error('❌ Error:', err);
       setError(err.message);
     }
   };
-
   const handleCleanup = async () => {
     try {
       setError('Cleaning up...');
@@ -137,64 +136,58 @@ export default function InterviewPage() {
       content: message.content || message.text,
     }]);
   };
-
   const endInterview = async () => {
     try {
       setIsSubmitting(true);
+      setError('⏳ Processing interview transcript... Please wait');
 
-      console.log('📥 Fetching transcript from Tavus...');
+      console.log('📥 Waiting for transcript from Tavus webhook...');
       console.log('🆔 Conversation ID:', conversationId);
 
       let finalTranscript = [];
+      let attempts = 0;
+      const maxAttempts = 30; // Wait up to 60 seconds
 
-      // Try to fetch transcript from Tavus
-      try {
-        const transcriptResponse = await fetch(
-          `/api/tavus/get-transcript?conversationId=${conversationId}`
-        );
+      // Poll for transcript
+      while (attempts < maxAttempts) {
+        try {
+          const response = await fetch(
+            `/api/tavus/get-stored-transcript?conversationId=${conversationId}`
+          );
 
-        if (transcriptResponse.ok) {
-          const transcriptData = await transcriptResponse.json();
-          
-          if (transcriptData.success && transcriptData.transcript && transcriptData.transcript.length > 0) {
-            finalTranscript = transcriptData.transcript;
-            console.log('✅ Got transcript from Tavus:', finalTranscript.length, 'messages');
+          if (response.ok) {
+            const data = await response.json();
             
-            // Log first few messages for debugging
-            finalTranscript.slice(0, 3).forEach((msg: any, i: number) => {
-              console.log(`  Message ${i + 1}: ${msg.speaker} - ${msg.content.substring(0, 50)}...`);
-            });
-          } else {
-            console.log('⚠️ Tavus returned empty transcript');
+            if (data.success && data.transcript && data.transcript.length > 0) {
+              finalTranscript = data.transcript;
+              console.log('✅ Transcript received:', finalTranscript.length, 'messages');
+              setError('✅ Transcript received! Generating PDF...');
+              break;
+            }
           }
-        } else {
-          console.log('⚠️ Failed to fetch Tavus transcript:', transcriptResponse.status);
+
+          // Update countdown
+          const remaining = (maxAttempts - attempts) * 2;
+          setError(`⏳ Waiting for transcript... ${remaining}s remaining`);
+
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          attempts++;
+
+        } catch (err) {
+          console.error('Error:', err);
         }
-      } catch (err) {
-        console.error('⚠️ Error fetching Tavus transcript:', err);
       }
 
-      // Fallback to local transcript if Tavus didn't work
-      if (finalTranscript.length === 0 && transcript.length > 0) {
-        finalTranscript = transcript;
-        console.log('✅ Using local transcript:', finalTranscript.length, 'messages');
-      }
-
-      // Last resort fallback
+      // Check if we got transcript
       if (finalTranscript.length === 0) {
-        finalTranscript = [
-          {
-            timestamp: new Date().toISOString(),
-            speaker: 'assistant' as const,
-            content: 'Exit interview was conducted via Tavus platform. Full transcript could not be retrieved from Tavus API. Please contact support if you need the full conversation details.',
-          },
-        ];
-        console.log('⚠️ Using fallback message');
+        setError('❌ Transcript not available. Please try again in a moment.');
+        setIsSubmitting(false);
+        return;
       }
 
-      console.log('📄 Generating PDF with', finalTranscript.length, 'messages');
+      setError('📄 Generating PDF...');
 
-      // Generate PDF
+      // Generate PDF with transcript
       const pdfResponse = await fetch('/api/generate-transcript', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -207,15 +200,23 @@ export default function InterviewPage() {
       });
 
       const pdfData = await pdfResponse.json();
+
+      if (!pdfResponse.ok) {
+        throw new Error(pdfData.details || pdfData.error);
+      }
+
       console.log('✅ PDF generated:', pdfData.pdfUrl);
+      console.log('✅ Messages processed:', pdfData.messagesProcessed);
+
+      setError('✅ Complete! Redirecting...');
 
       setTimeout(() => {
         router.push(`/thank-you/${recordId}`);
       }, 2000);
 
     } catch (err: any) {
-      console.error('Error:', err);
-      setError(err.message);
+      console.error('❌ Error:', err);
+      setError(err.message || 'Failed to process interview');
       setIsSubmitting(false);
     }
   };
