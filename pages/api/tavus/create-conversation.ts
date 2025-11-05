@@ -137,7 +137,6 @@
 //   }
 // }
 
-
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { conversationRecordMapping } from './webhook';
 
@@ -191,7 +190,7 @@ export default async function handler(
 
     console.log('📋 Projects:', projectDetails.length);
 
-    // System prompt (your existing prompt)
+    // System prompt
     const conversationalContext = `
 You are an empathetic HR representative conducting a 10-15 minute exit interview with ${candidateName}, a ${designation} from ${domain}.
 
@@ -221,7 +220,7 @@ Be natural, specific, empathetic. 10-15 min.
 
     const customGreeting = `Hello ${candidateName}! Thank you for taking the time. How are you feeling about everything?`;
 
-    // Build conversation payload with recording
+    // Build conversation payload
     const conversationPayload: any = {
       replica_id: TAVUS_REPLICA_ID,
       persona_id: TAVUS_PERSONA_ID,
@@ -231,21 +230,25 @@ Be natural, specific, empathetic. 10-15 min.
       webhook_url: `${APP_URL}/api/tavus/webhook`,
     };
 
-    // ADD RECORDING CONFIGURATION IF AWS IS CONFIGURED
+    // ADD RECORDING INSIDE PROPERTIES
     if (AWS_ASSUME_ROLE_ARN && AWS_S3_BUCKET_REGION && AWS_S3_BUCKET_NAME) {
       conversationPayload.properties = {
         enable_recording: true,
         enable_transcription: true,
+        recording_s3_bucket_name: AWS_S3_BUCKET_NAME,
+        recording_s3_bucket_region: AWS_S3_BUCKET_REGION,
+        aws_assume_role_arn: AWS_ASSUME_ROLE_ARN,
       };
       
-      conversationPayload.recording_s3_bucket_name = AWS_S3_BUCKET_NAME;
-      conversationPayload.recording_s3_bucket_region = AWS_S3_BUCKET_REGION;
-      conversationPayload.aws_assume_role_arn = AWS_ASSUME_ROLE_ARN;
-      
-      console.log('📹 Recording enabled to S3:', AWS_S3_BUCKET_NAME);
+      console.log('📹 Recording enabled');
+      console.log('  - Bucket:', AWS_S3_BUCKET_NAME);
+      console.log('  - Region:', AWS_S3_BUCKET_REGION);
+      console.log('  - Role ARN:', AWS_ASSUME_ROLE_ARN);
     } else {
       console.log('⚠️ Recording not configured (missing AWS settings)');
     }
+
+    console.log('📤 Sending payload to Tavus...');
 
     // Create conversation
     const response = await fetch('https://tavusapi.com/v2/conversations', {
