@@ -31,6 +31,7 @@ export default async function handler(
       githubDescriptions,
       driveDescriptions,
       otherDescriptions,
+      feedback,
     } = req.body;
 
     console.log('📥 Received submission:', { recordId, candidateName });
@@ -72,6 +73,7 @@ export default async function handler(
         [GITHUB_DESC_FIELD!]: githubDescriptions || '',
         [DRIVE_DESC_FIELD!]: driveDescriptions || '',
         [OTHER_DESC_FIELD!]: otherDescriptions || '',
+        'Feedback': feedback,
       },
     };
 
