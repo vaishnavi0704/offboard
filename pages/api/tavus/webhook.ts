@@ -6,17 +6,30 @@ const BASE_ID = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
 const TABLE_ID = process.env.NEXT_PUBLIC_AIRTABLE_TABLE_ID;
 const TRANSCRIPT_FIELD_ID = process.env.AIRTABLE_TRANSCRIPT_FIELD_ID;
 const STATUS_FIELD_ID = process.env.AIRTABLE_STATUS_FIELD_ID;
+// AWS S3 Configuration - ADD VALIDATION
+const AWS_REGION = process.env.AWS_REGION;
+const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
+const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
+const S3_BUCKET = process.env.AWS_S3_BUCKET_NAME;
 
-// AWS S3 Configuration
+// Validate AWS credentials before creating client
+if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY || !AWS_REGION || !S3_BUCKET) {
+  console.error('❌ Missing AWS credentials:', {
+    hasAccessKey: !!AWS_ACCESS_KEY_ID,
+    hasSecretKey: !!AWS_SECRET_ACCESS_KEY,
+    hasRegion: !!AWS_REGION,
+    hasBucket: !!S3_BUCKET,
+  });
+}
+
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'us-east-1',
+  region: AWS_REGION || 'ap-south-1',
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    accessKeyId: AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: AWS_SECRET_ACCESS_KEY || '',
   },
 });
 
-const S3_BUCKET = process.env.AWS_S3_BUCKET_NAME;
 
 // Keep this for backward compatibility
 export const conversationRecordMapping = new Map<string, string>();
