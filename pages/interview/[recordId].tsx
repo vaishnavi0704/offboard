@@ -395,6 +395,11 @@
 // };
 
 
+
+
+
+
+
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
@@ -559,11 +564,11 @@ export default function InterviewPage() {
       
       const finalTranscript = data.transcript;
 
-      if (!finalTranscript || finalTranscript.length === 0) {
-        throw new Error('No conversation messages found. Please ensure you completed the interview.');
-      }
+      // if (!finalTranscript || finalTranscript.length === 0) {
+      //   throw new Error('No conversation messages found. Please ensure you completed the interview.');
+      // }
 
-      setError('📄 Generating PDF...');
+      // setError('📄 Generating PDF...');
 
       // Generate PDF with transcript
       const pdfResponse = await fetch('/api/generate-transcript', {
