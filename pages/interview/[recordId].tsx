@@ -571,7 +571,7 @@ export default function InterviewPage() {
       // setError('📄 Generating PDF...');
 
       // Generate PDF with transcript
-      const pdfResponse = await fetch('/api/generate-transcript', {
+      const pdfResponse = await fetch('/api/tavus/webhook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
