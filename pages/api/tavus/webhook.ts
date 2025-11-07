@@ -129,10 +129,7 @@ export default async function handler(
         },
         body: JSON.stringify({
           fields: {
-            [TRANSCRIPT_FIELD_ID!]: [{ 
-              url: s3Url,
-              filename: `transcript_${conversationId}.json`  // ✅ Add filename
-            }],
+            [TRANSCRIPT_FIELD_ID!]: s3Url,  // Just the URL as text
             [STATUS_FIELD_ID!]: 'Interview Completed',
           },
         }),
