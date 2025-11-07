@@ -22,7 +22,7 @@ export default async function handler(
     // Create access token
     const token = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
       identity: participantName,
-      name: participantName,
+      name: "You",
       metadata: JSON.stringify(metadata),
     });
 
