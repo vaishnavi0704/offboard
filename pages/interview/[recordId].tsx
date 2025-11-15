@@ -532,7 +532,7 @@ export default function InterviewPage() {
 
               <ul style={styles.infoList}>
 
-                <li>Click "Allow" when prompted for camera and microphone access</li>
+                {/* <li>Click "Allow" when prompted for camera and microphone access</li>
 
                 <li>Ensure you're in a quiet, well-lit environment</li>
 
@@ -540,7 +540,7 @@ export default function InterviewPage() {
 
                 <li>The AI knows about your role and projects</li>
 
-                <li>Interview duration: 10-15 minutes</li>
+                <li>Interview duration: 10-15 minutes</li> */}
 
               </ul>
 
