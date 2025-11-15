@@ -164,12 +164,6 @@ export default function InterviewPage() {
       
       const finalTranscript = data.transcript;
 
-      // if (!finalTranscript || finalTranscript.length === 0) {
-      //   throw new Error('No conversation messages found. Please ensure you completed the interview.');
-      // }
-
-      // setError('📄 Generating PDF...');
-
       // Generate PDF with transcript
       const pdfResponse = await fetch('/api/tavus/webhook', {
         method: 'POST',
@@ -217,7 +211,10 @@ export default function InterviewPage() {
     return (
       <div style={styles.errorContainer}>
         <div style={styles.errorCard}>
-          <h2 style={styles.errorTitle}>⚠️ Error</h2>
+          <svg style={styles.errorIconSvg} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h2 style={styles.errorTitle}>Error</h2>
           <p style={styles.errorText}>{error}</p>
           {needsCleanup && (
             <button onClick={handleCleanup} style={styles.cleanupButton}>
@@ -247,25 +244,34 @@ export default function InterviewPage() {
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
           font-family: 'Inter', sans-serif;
-          background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-          color: white;
+          background: #f1f5f9; /* Changed: Light gray background */
+          color: #1e293b; /* Changed: Default dark text */
         }
       `}</style>
 
       <div style={styles.container}>
         {!isInterviewActive ? (
+          // === PRE-INTERVIEW SCREEN ===
           <div style={styles.preCard}>
             <div style={styles.avatar}>
               <svg style={styles.avatarIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9A2.25 2.25 0 0013.5 5.25h-9A2.25 2.25 0 002.25 7.5v9A2.25 2.25 0 004.5 18.75z" />
               </svg>
             </div>
-            <h1 style={styles.title}>Welcome, {candidateData?.name}!</h1>
-            <p style={styles.subtitle}>AI-Powered Exit Interview</p>
+            <h1 style={styles.title}>Your AI Interview is Ready!</h1>
+            <p style={styles.subtitle}>
+              Hi {candidateData?.name}! Your personalized exit interview with our AI HR representative is ready to begin.
+            </p>
             
             <div style={styles.infoBox}>
-              <p><strong>Position:</strong> {candidateData?.designation}</p>
-              <p><strong>Department:</strong> {candidateData?.domain}</p>
+              <h4 style={styles.infoBoxTitle}>💡 Before you start:</h4>
+              <ul style={styles.infoList}>
+                <li>Click "Allow" when prompted for camera and microphone access</li>
+                <li>Ensure you're in a quiet, well-lit environment</li>
+                <li>Speak clearly and naturally - it's a conversation, not a test</li>
+                <li>The AI knows about your role and projects</li>
+                <li>Interview duration: 10-15 minutes</li>
+              </ul>
             </div>
 
             <button 
@@ -276,12 +282,26 @@ export default function InterviewPage() {
                 ...(!conversationId && styles.buttonDisabled)
               }}
             >
-              {conversationId ? 'Start AI Interview' : 'Preparing...'}
-            </button>
+              {conversationId ? 'Launch AI Interview' : 'Preparing...'}
+              {isSubmitting ? (
+                  <>
+                    <div style={styles.smallSpinner}></div>
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  'End Interview & Submit'
+                )}
+              </button>
+           
             
             {error && <p style={styles.errorMsg}>{error}</p>}
+            
+            <a href="#" style={styles.troubleLink}>
+              Having trouble? Click here
+            </a>
           </div>
         ) : (
+          // === ACTIVE INTERVIEW SCREEN ===
           <div style={styles.activeContainer}>
             <div style={styles.videoSection}>
               <LiveKitInterview
@@ -297,29 +317,29 @@ export default function InterviewPage() {
               </div>
               
               <div style={styles.infoPanel}>
-                <h3 style={{ fontSize: '18px', marginBottom: '16px', color: 'white' }}>
+                <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#1e293b' }}>
                   📋 Interview Progress
                 </h3>
-                <p style={{ fontSize: '14px', lineHeight: '1.8', color: 'rgba(255,255,255,0.8)' }}>
+                <p style={{ fontSize: '14px', lineHeight: '1.8', color: '#475569' }}>
                   Your AI exit interview is being conducted in a separate window. The AI interviewer has been briefed about your role and will ask relevant questions.
                 </p>
               </div>
 
-              <div style={styles.noteBox}>
-                <h4 style={{ fontSize: '16px', marginBottom: '12px', color: 'white' }}>
+              {/* <div style={styles.noteBox}>
+                <h4 style={{ fontSize: '16px', marginBottom: '12px', color: '#1e293b' }}>
                   💡 Important:
                 </h4>
-                <ul style={{ fontSize: '14px', lineHeight: '1.8', paddingLeft: '20px', color: 'rgba(255,255,255,0.8)' }}>
+                <ul style={{ fontSize: '14px', lineHeight: '1.8', paddingLeft: '20px', color: '#475569' }}>
                   <li>Complete your interview in the opened window</li>
                   <li>Return here when finished</li>
                   <li>Click "End Interview" to save transcript</li>
                   <li>Transcript will be stored in AWS S3 and Airtable</li>
                 </ul>
-              </div>
+              </div> */}
 
               {error && (
                 <div style={styles.statusBox}>
-                  <p style={{ fontSize: '14px', color: '#fbbf24' }}>{error}</p>
+                  <p style={{ fontSize: '14px', color: '#b45309' }}>{error}</p>
                 </div>
               )}
               
@@ -348,33 +368,43 @@ export default function InterviewPage() {
   );
 }
 
+// === STYLES ===
 const styles: any = {
-  container: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' },
-  loadingContainer: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' },
-  spinner: { width: '60px', height: '60px', border: '4px solid rgba(255,255,255,0.3)', borderTop: '4px solid white', borderRadius: '50%', animation: 'spin 1s linear infinite' },
+  // --- Global & Loading/Error ---
+  container: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' },
+  loadingContainer: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9', color: '#475569' },
+  spinner: { width: '60px', height: '60px', border: '4px solid rgba(0,0,0,0.1)', borderTop: '4px solid #2563eb', borderRadius: '50%', animation: 'spin 1s linear infinite' },
   smallSpinner: { width: '20px', height: '20px', border: '3px solid rgba(255,255,255,0.3)', borderTop: '3px solid white', borderRadius: '50%', animation: 'spin 1s linear infinite', marginRight: '10px' },
-  loadingText: { marginTop: '20px', fontSize: '18px' },
-  errorContainer: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  errorCard: { background: 'white', color: '#1e293b', borderRadius: '20px', padding: '60px', textAlign: 'center', maxWidth: '500px' },
+  loadingText: { marginTop: '20px', fontSize: '18px', color: '#475569' },
+  errorContainer: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9' },
+  errorCard: { background: 'white', color: '#1e293b', borderRadius: '20px', padding: '60px', textAlign: 'center', maxWidth: '500px', boxShadow: '0 20px 60px rgba(0,0,0,0.1)' },
+  errorIconSvg: { width: '50px', height: '50px', color: '#ef4444', marginBottom: '20px' },
   errorTitle: { fontSize: '28px', marginBottom: '16px' },
   errorText: { fontSize: '16px', color: '#64748b', marginBottom: '20px' },
-  cleanupButton: { background: '#667eea', color: 'white', border: 'none', padding: '12px 32px', borderRadius: '12px', fontSize: '16px', cursor: 'pointer', fontWeight: '600' },
-  preCard: { background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)', borderRadius: '24px', padding: '60px', textAlign: 'center', maxWidth: '600px', width: '100%' },
-  avatar: { width: '100px', height: '100px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '30px' },
-  avatarIcon: { width: '50px', height: '50px', color: 'white' },
-  title: { fontSize: '32px', fontWeight: '800', marginBottom: '8px' },
-  subtitle: { fontSize: '18px', opacity: 0.8, marginBottom: '30px' },
-  infoBox: { background: 'rgba(102,126,234,0.1)', border: '1px solid rgba(102,126,234,0.3)', borderRadius: '12px', padding: '20px', marginBottom: '30px', textAlign: 'left', lineHeight: '1.8' },
-  startButton: { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', padding: '18px 50px', borderRadius: '50px', fontSize: '18px', fontWeight: '700', cursor: 'pointer', transition: 'transform 0.2s' },
+  cleanupButton: { background: '#2563eb', color: 'white', border: 'none', padding: '12px 32px', borderRadius: '12px', fontSize: '16px', cursor: 'pointer', fontWeight: '600' },
+  
+  // --- Pre-Interview Card ---
+  preCard: { background: 'white', borderRadius: '24px', padding: '50px', textAlign: 'center', maxWidth: '600px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.1)' },
+  avatar: { marginBottom: '20px' },
+  avatarIcon: { width: '80px', height: '80px', color: '#9ca3af' }, // Gray icon
+  title: { fontSize: '32px', fontWeight: '800', marginBottom: '12px', color: '#1e293b' },
+  subtitle: { fontSize: '16px', color: '#64748b', opacity: 1, marginBottom: '30px', maxWidth: '450px', margin: '0 auto 30px' },
+  infoBox: { background: '#f0f9ff', border: '1px solid #dbeafe', color: '#0369a1', borderRadius: '12px', padding: '24px', marginBottom: '30px', textAlign: 'left' },
+  infoBoxTitle: { fontWeight: '700', fontSize: '15px', color: '#0284c7', marginBottom: '16px' },
+  infoList: { paddingLeft: '20px', fontSize: '14px', lineHeight: '2', color: '#0369a1', listStyleType: '"✓  "' }, // Using ✓ prefix
+  startButton: { background: '#2563eb', color: 'white', border: 'none', padding: '16px 40px', borderRadius: '50px', fontSize: '16px', fontWeight: '700', cursor: 'pointer', transition: 'transform 0.2s', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)' },
   buttonDisabled: { opacity: 0.6, cursor: 'not-allowed' },
-  errorMsg: { marginTop: '20px', color: '#fca5a5' },
-  activeContainer: { display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', width: '100%', maxWidth: '1600px', height: '90vh' },
-  videoSection: { background: '#000', borderRadius: '20px', overflow: 'hidden' },
-  sidebar: { display: 'flex', flexDirection: 'column', gap: '20px' },
-  status: { background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '600' },
+  errorMsg: { marginTop: '20px', color: '#ef4444' },
+  troubleLink: { display: 'block', marginTop: '24px', fontSize: '14px', color: '#64748b', textDecoration: 'none' },
+
+  // --- Active Interview Screen ---
+  activeContainer: { display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '30px', width: '100%', maxWidth: '1600px', height: 'calc(100vh - 80px)' },
+  videoSection: { background: '#000', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.1)' },
+  sidebar: { display: 'flex', flexDirection: 'column', gap: '20px', background: 'white', borderRadius: '20px', padding: '30px', boxShadow: '0 20px 60px rgba(0,0,0,0.1)' },
+  status: { background: '#f8fafc', border: '1px solid #e2e8f0', padding: '20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '600', color: '#475569' },
   dot: { width: '12px', height: '12px', background: '#10b981', borderRadius: '50%', animation: 'pulse 2s infinite' },
-  infoPanel: { background: 'rgba(102, 126, 234, 0.1)', border: '1px solid rgba(102, 126, 234, 0.3)', padding: '24px', borderRadius: '16px' },
-  noteBox: { background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '24px', borderRadius: '16px' },
-  statusBox: { background: 'rgba(251, 191, 36, 0.1)', border: '1px solid rgba(251, 191, 36, 0.3)', padding: '20px', borderRadius: '16px' },
+  infoPanel: { background: '#f0f9ff', border: '1px solid #dbeafe', padding: '24px', borderRadius: '16px' },
+  noteBox: { background: '#f0fdf4', border: '1px solid #dcfce7', padding: '24px', borderRadius: '16px' },
+  statusBox: { background: '#fffbeb', border: '1px solid #fef3c7', padding: '20px', borderRadius: '16px' },
   endButton: { background: '#ef4444', color: 'white', border: 'none', padding: '16px', borderRadius: '12px', fontSize: '16px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' },
 };
