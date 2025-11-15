@@ -526,7 +526,7 @@ export default function InterviewPage() {
 
             
 
-            <div style={styles.infoBox}>
+            {/* <div style={styles.infoBox}>
 
               <h4 style={styles.infoBoxTitle}>💡 Before you start:</h4>
 
@@ -544,7 +544,7 @@ export default function InterviewPage() {
 
               </ul>
 
-            </div>
+            </div> */}
 
 
 
