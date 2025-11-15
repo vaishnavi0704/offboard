@@ -564,7 +564,7 @@ export default function InterviewPage() {
 
             >
 
-              {conversationId ? 'Launch AI Interview' : 'Preparing...'}
+              {conversationId ? 'Preparing...' : 'Preparing...'}
 
               {isSubmitting ? (
 
@@ -578,7 +578,7 @@ export default function InterviewPage() {
 
                 ) : (
 
-                  'End Interview & Submit'
+                  'Your Interview'
 
                 )}
 
