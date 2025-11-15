@@ -520,31 +520,31 @@ export default function InterviewPage() {
 
             <p style={styles.subtitle}>
 
-              Hi {candidateData?.name}! Your personalized exit interview with our AI HR representative is ready to begin.
+              {/* Hi {candidateData?.name}! Your personalized exit interview with our AI HR representative is ready to begin. */}
 
             </p>
 
             
 
-            {/* <div style={styles.infoBox}>
+             <div style={styles.infoBox}>
 
               <h4 style={styles.infoBoxTitle}>💡 Before you start:</h4>
 
               <ul style={styles.infoList}>
 
-                {/* <li>Click "Allow" when prompted for camera and microphone access</li>
+                 <li>Hi {candidateData?.name}! Your personalized exit interview with our AI HR representative is ready to begin.</li>
 
-                <li>Ensure you're in a quiet, well-lit environment</li>
+                {/* <li>Ensure you're in a quiet, well-lit environment</li>
 
                 <li>Speak clearly and naturally - it's a conversation, not a test</li>
 
                 <li>The AI knows about your role and projects</li>
 
-                <li>Interview duration: 10-15 minutes</li> */}
+                <li>Interview duration: 10-15 minutes</li>  */}
 
               </ul>
 
-            </div> */}
+            </div> 
 
 
 
