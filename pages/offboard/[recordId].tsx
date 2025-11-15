@@ -1,3 +1,4 @@
+
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
@@ -135,7 +136,7 @@ export default function OffboardingPage() {
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: #f1f5f9;
           min-height: 100vh;
         }
         @keyframes spin {
@@ -230,10 +231,10 @@ export default function OffboardingPage() {
 // Header Component
 function HeaderWithProgress({ currentStep, candidateData }: any) {
   const steps = [
-    { num: 1, title: 'GitHub', icon: '🐙' },
-    { num: 2, title: 'Google Drive', icon: '📁' },
-    { num: 3, title: 'Other Platforms', icon: '🔗' },
-    { num: 4, title: 'Feedback', icon: '💬' },
+    { num: 1, title: 'GitHub', icon: '1' },
+    { num: 2, title: 'Google Drive', icon: '2' },
+    { num: 3, title: 'Other Platforms', icon: '3' },
+    { num: 4, title: 'Feedback', icon: '4' },
   ];
 
   return (
@@ -277,10 +278,9 @@ function HeaderWithProgress({ currentStep, candidateData }: any) {
 function Step1GitHub({ links, setLinks, error }: any) {
   return (
     <LinkSection
-      icon="🐙"
       title="GitHub Repositories"
       description="Share your GitHub repositories with detailed project descriptions"
-      color="#6e5494"
+      color="#6050ebff"
       links={links}
       setLinks={setLinks}
       urlPlaceholder="https://github.com/username/repository"
@@ -294,10 +294,9 @@ function Step1GitHub({ links, setLinks, error }: any) {
 function Step2Drive({ links, setLinks, error }: any) {
   return (
     <LinkSection
-      icon="📁"
-      title="Google Drive Documents"
+      title="Drive"
       description="Share Google Drive folders containing project documentation, specs, and resources"
-      color="#4285f4"
+      color="#6050ebff"
       links={links}
       setLinks={setLinks}
       urlPlaceholder="https://drive.google.com/drive/folders/..."
@@ -311,10 +310,9 @@ function Step2Drive({ links, setLinks, error }: any) {
 function Step3Other({ links, setLinks, error }: any) {
   return (
     <LinkSection
-      icon="🔗"
       title="Other Platforms & Resources"
       description="GitLab, Bitbucket, Notion, Confluence, Figma, or any other platform"
-      color="#ff6b6b"
+      color="#6050ebff"
       links={links}
       setLinks={setLinks}
       urlPlaceholder="https://..."
@@ -329,7 +327,6 @@ function Step4Feedback({ feedback, setFeedback, error }: any) {
   return (
     <div style={styles.feedbackSection}>
       <div style={styles.feedbackHeader}>
-        <div style={styles.feedbackIcon}>💬</div>
         <div>
           <h2 style={styles.feedbackTitle}>Your Feedback</h2>
           <p style={styles.feedbackDesc}>
@@ -366,7 +363,7 @@ function Step4Feedback({ feedback, setFeedback, error }: any) {
 }
 
 // Link Section Component (Reusable)
-function LinkSection({ icon, title, description, color, links, setLinks, urlPlaceholder, descPlaceholder, error }: any) {
+function LinkSection({ title, description, color, links, setLinks, urlPlaceholder, descPlaceholder, error }: any) {
   const addLink = () => setLinks([...links, { url: '', description: '' }]);
   
   const removeLink = (index: number) => {
@@ -383,7 +380,6 @@ function LinkSection({ icon, title, description, color, links, setLinks, urlPlac
   return (
     <div style={styles.linkSection}>
       <div style={styles.linkSectionHeader}>
-        <span style={styles.sectionIcon}>{icon}</span>
         <div>
           <h2 style={styles.sectionTitle}>{title}</h2>
           <p style={styles.sectionDesc}>{description}</p>
@@ -408,7 +404,7 @@ function LinkSection({ icon, title, description, color, links, setLinks, urlPlac
           </div>
 
           <div style={styles.inputGroup}>
-            <label style={styles.inputLabel}>🔗 Project URL</label>
+            <label style={styles.inputLabel}>Project URL</label>
             <input
               type="url"
               value={link.url}
@@ -419,7 +415,7 @@ function LinkSection({ icon, title, description, color, links, setLinks, urlPlac
           </div>
 
           <div style={styles.inputGroup}>
-            <label style={styles.inputLabel}>📝 Description</label>
+            <label style={styles.inputLabel}>Description</label>
             <textarea
               value={link.description}
               onChange={(e) => updateLink(index, 'description', e.target.value)}
@@ -468,7 +464,9 @@ function ErrorScreen({ error, onRetry }: any) {
   return (
     <div style={styles.fullScreenCenter}>
       <div style={styles.errorScreen}>
-        <div style={styles.errorIconLarge}>⚠️</div>
+        <svg style={styles.errorIconSvg} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
         <h2 style={styles.errorTitle}>{error}</h2>
         <button onClick={onRetry} style={styles.retryButton}>Try Again</button>
       </div>
@@ -483,28 +481,29 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '40px 20px',
   },
   mainCard: {
-    maxWidth: '900px',
+    maxWidth: '800px', // Changed: Made card smaller
     margin: '0 auto',
     background: 'white',
     borderRadius: '24px',
-    boxShadow: '0 30px 80px rgba(0,0,0,0.25)',
-    overflow: 'hidden',
+    boxShadow: '0 30px 80px rgba(0,0,0,0.1)',
   },
   header: {
     background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-    padding: '50px 40px',
+    padding: '40px 40px', // Reduced padding
     textAlign: 'center',
+    borderTopLeftRadius: '24px',
+    borderTopRightRadius: '24px',
   },
   mainTitle: {
-    fontSize: '36px',
+    fontSize: '28px', // Changed: Smaller font
     fontWeight: '800',
     color: 'white',
     marginBottom: '8px',
   },
   subtitle: {
-    fontSize: '16px',
+    fontSize: '14px', // Changed: Smaller font
     color: 'rgba(255,255,255,0.7)',
-    marginBottom: '40px',
+    marginBottom: '30px', // Reduced margin
   },
   stepsContainer: {
     display: 'flex',
@@ -519,27 +518,28 @@ const styles: { [key: string]: React.CSSProperties } = {
     position: 'relative' as 'relative',
   },
   stepCircle: {
-    width: '50px',
-    height: '50px',
+    width: '44px', // Changed: Smaller circle
+    height: '44px', // Changed: Smaller circle
     borderRadius: '50%',
     background: 'rgba(255,255,255,0.2)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '20px',
+    fontSize: '18px', // Changed: Smaller font
+    fontWeight: '600',
     marginBottom: '8px',
     transition: 'all 0.3s',
   },
   stepActive: {
-    background: '#667eea',
-    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.5)',
+    background: '#2563eb',
+    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.4)',
     transform: 'scale(1.1)',
   },
   stepCompleted: {
     background: '#10b981',
   },
   stepLabel: {
-    fontSize: '13px',
+    fontSize: '12px', // Changed: Smaller font
     color: 'rgba(255,255,255,0.6)',
     fontWeight: '600',
   },
@@ -551,34 +551,33 @@ const styles: { [key: string]: React.CSSProperties } = {
     height: '3px',
     background: 'rgba(255,255,255,0.2)',
     position: 'absolute' as 'absolute',
-    top: '25px',
-    left: '65px',
+    top: '21px', // Adjusted position for smaller circle
+    left: '60px', // Adjusted position
   },
   stepLineCompleted: {
     background: '#10b981',
   },
   contentContainer: {
-    padding: '50px 40px',
+    padding: '40px 40px', // Reduced padding
   },
   linkSection: {
-    marginBottom: '40px',
+    marginBottom: '30px',
   },
   linkSectionHeader: {
     display: 'flex',
-    gap: '20px',
-    marginBottom: '30px',
+    marginBottom: '24px', // Reduced margin
   },
   sectionIcon: {
-    fontSize: '48px',
+    display: 'none', // Changed: Removed icon
   },
   sectionTitle: {
-    fontSize: '28px',
+    fontSize: '22px', // Changed: Smaller font
     fontWeight: '700',
     color: '#1e293b',
-    marginBottom: '8px',
+    marginBottom: '6px', // Reduced margin
   },
   sectionDesc: {
-    fontSize: '16px',
+    fontSize: '14px', // Changed: Smaller font
     color: '#64748b',
     lineHeight: '1.6',
   },
@@ -596,10 +595,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: '20px',
   },
   linkBadge: {
-    padding: '6px 14px',
+    padding: '5px 12px', // Reduced padding
     borderRadius: '20px',
     color: 'white',
-    fontSize: '13px',
+    fontSize: '12px', // Changed: Smaller font
     fontWeight: '600',
   },
   removeBtn: {
@@ -607,32 +606,32 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: 'none',
     color: '#ef4444',
     cursor: 'pointer',
-    fontSize: '14px',
+    fontSize: '13px', // Changed: Smaller font
     fontWeight: '600',
     padding: '8px 12px',
   },
   inputGroup: {
-    marginBottom: '20px',
+    marginBottom: '16px', // Reduced margin
   },
   inputLabel: {
     display: 'block',
-    fontSize: '14px',
+    fontSize: '13px', // Changed: Smaller font
     fontWeight: '600',
     color: '#475569',
     marginBottom: '8px',
   },
   input: {
     width: '100%',
-    padding: '14px 16px',
+    padding: '12px 14px', // Reduced padding
     border: '2px solid #e2e8f0',
     borderRadius: '10px',
-    fontSize: '15px',
+    fontSize: '14px', // Changed: Smaller font
     fontFamily: 'monospace',
     outline: 'none',
   },
   textarea: {
     width: '100%',
-    padding: '14px 16px',
+    padding: '12px 14px', // Reduced padding
     border: '2px solid #e2e8f0',
     borderRadius: '10px',
     fontSize: '14px',
@@ -643,9 +642,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   addMoreBtn: {
     background: 'transparent',
     border: '2px solid',
-    padding: '14px 24px',
+    padding: '12px 20px', // Reduced padding
     borderRadius: '12px',
-    fontSize: '15px',
+    fontSize: '14px', // Changed: Smaller font
     fontWeight: '600',
     cursor: 'pointer',
     display: 'flex',
@@ -653,60 +652,59 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '8px',
   },
   feedbackSection: {
-    marginBottom: '40px',
+    marginBottom: '30px',
   },
   feedbackHeader: {
     display: 'flex',
-    gap: '20px',
-    marginBottom: '30px',
+    marginBottom: '24px', // Reduced margin
   },
   feedbackIcon: {
-    fontSize: '48px',
+    display: 'none', // Changed: Removed icon
   },
   feedbackTitle: {
-    fontSize: '28px',
+    fontSize: '22px', // Changed: Smaller font
     fontWeight: '700',
     color: '#1e293b',
-    marginBottom: '8px',
+    marginBottom: '6px', // Reduced margin
   },
   feedbackDesc: {
-    fontSize: '16px',
+    fontSize: '14px', // Changed: Smaller font
     color: '#64748b',
     lineHeight: '1.6',
   },
   feedbackTextarea: {
     width: '100%',
-    padding: '20px',
+    padding: '16px', // Reduced padding
     border: '2px solid #e2e8f0',
     borderRadius: '16px',
-    fontSize: '15px',
+    fontSize: '14px', // Changed: Smaller font
     outline: 'none',
     resize: 'vertical' as 'vertical',
     fontFamily: 'inherit',
-    lineHeight: '1.8',
-    minHeight: '300px',
+    lineHeight: '1.7',
+    minHeight: '250px', // Reduced height
   },
   feedbackNote: {
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
     marginTop: '16px',
-    padding: '16px',
+    padding: '14px', // Reduced padding
     background: '#f0f9ff',
     borderRadius: '12px',
-    fontSize: '14px',
+    fontSize: '13px', // Changed: Smaller font
     color: '#0369a1',
   },
   noteIcon: {
-    width: '20px',
-    height: '20px',
+    width: '18px', // Smaller icon
+    height: '18px', // Smaller icon
     flexShrink: 0,
   },
   errorAlert: {
     background: '#fef2f2',
     border: '2px solid #fecaca',
     borderRadius: '12px',
-    padding: '16px',
+    padding: '14px', // Reduced padding
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
@@ -714,16 +712,16 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#991b1b',
   },
   errorIcon: {
-    width: '20px',
-    height: '20px',
+    width: '18px', // Smaller icon
+    height: '18px', // Smaller icon
     flexShrink: 0,
   },
   navigationContainer: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: '50px',
-    paddingTop: '30px',
+    marginTop: '40px', // Reduced margin
+    paddingTop: '24px', // Reduced padding
     borderTop: '2px solid #e2e8f0',
   },
   rightButtons: {
@@ -735,45 +733,45 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: 'transparent',
     border: '2px solid #cbd5e0',
     color: '#64748b',
-    padding: '12px 24px',
+    padding: '10px 20px', // Reduced padding
     borderRadius: '12px',
-    fontSize: '15px',
+    fontSize: '14px', // Changed: Smaller font
     fontWeight: '600',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
+    gap: '6px',
   },
   skipButton: {
     background: 'transparent',
     border: 'none',
     color: '#64748b',
-    padding: '12px 24px',
-    fontSize: '15px',
+    padding: '10px 20px', // Reduced padding
+    fontSize: '14px', // Changed: Smaller font
     fontWeight: '600',
     cursor: 'pointer',
   },
   nextButton: {
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    background: '#2563eb',
     color: 'white',
     border: 'none',
-    padding: '14px 32px',
+    padding: '12px 28px', // Reduced padding
     borderRadius: '12px',
-    fontSize: '16px',
+    fontSize: '15px', // Changed: Smaller font
     fontWeight: '600',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
   },
   submitButton: {
     background: '#10b981',
     color: 'white',
     border: 'none',
-    padding: '14px 32px',
+    padding: '12px 28px', // Reduced padding
     borderRadius: '12px',
-    fontSize: '16px',
+    fontSize: '15px', // Changed: Smaller font
     fontWeight: '600',
     cursor: 'pointer',
     display: 'flex',
@@ -782,50 +780,55 @@ const styles: { [key: string]: React.CSSProperties } = {
     boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
   },
   btnIcon: {
-    width: '20px',
-    height: '20px',
+    width: '18px', // Smaller icon
+    height: '18px', // Smaller icon
   },
   fullScreenCenter: {
     minHeight: '100vh',
     display: 'flex',
+    flexDirection: 'column' as 'column',
     alignItems: 'center',
     justifyContent: 'center',
+    background: '#f1f5f9',
   },
   loadingSpinner: {
     width: '50px',
     height: '50px',
-    border: '4px solid rgba(255,255,255,0.3)',
-    borderTop: '4px solid white',
+    border: '4px solid rgba(0,0,0,0.1)',
+    borderTop: '4px solid #2563eb',
     borderRadius: '50%',
     animation: 'spin 1s linear infinite',
   },
   loadingText: {
-    color: 'white',
-    fontSize: '16px',
+    color: '#475569',
+    fontSize: '14px', // Changed: Smaller font
     marginTop: '20px',
   },
   errorScreen: {
     background: 'white',
     borderRadius: '20px',
-    padding: '50px',
+    padding: '40px', // Reduced padding
     textAlign: 'center' as 'center',
+    boxShadow: '0 20px 60px rgba(0,0,0,0.1)',
   },
-  errorIconLarge: {
-    fontSize: '60px',
+  errorIconSvg: { // Changed: Replaced emoji with SVG
+    width: '50px',
+    height: '50px',
+    color: '#423fdaff',
     marginBottom: '20px',
   },
   errorTitle: {
-    fontSize: '20px',
+    fontSize: '18px', // Changed: Smaller font
     color: '#1e293b',
-    marginBottom: '20px',
+    marginBottom: '24px',
   },
   retryButton: {
-    background: '#667eea',
+    background: '#2563eb',
     color: 'white',
     border: 'none',
-    padding: '12px 30px',
+    padding: '10px 28px', // Reduced padding
     borderRadius: '10px',
-    fontSize: '15px',
+    fontSize: '14px', // Changed: Smaller font
     fontWeight: '600',
     cursor: 'pointer',
   },
