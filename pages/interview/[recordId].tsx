@@ -282,14 +282,14 @@ export default function InterviewPage() {
                 ...(!conversationId && styles.buttonDisabled)
               }}
             >
-              {conversationId ? 'Launch AI Interview' : 'Preparing...'}
+              {conversationId ? 'Preparing...' : 'Preparing...'}
               {isSubmitting ? (
                   <>
                     <div style={styles.smallSpinner}></div>
                     <span>Processing...</span>
                   </>
                 ) : (
-                  'End Interview & Submit'
+                  
                 )}
               </button>
            
