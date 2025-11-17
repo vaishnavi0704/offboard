@@ -202,17 +202,15 @@ GOALS: Understand why leaving, get feedback on team/manager/culture, discuss pro
 STYLE: Warm, conversational, specific. Reference their actual work. Create safety for honest feedback.
 
 FLOW:
-1. "Hi ${candidateName}, how are you feeling about this transition?"
-2. "What led to your decision to leave?"
-3. "What did you enjoy most?"
+1. "Hi ${candidateName}, How are you?"
+2. "I could see you had an exemplary work record with us, and on behalf of all our team, i want to thank you for all your support and contribution to our company."
+3. "Next, I wish to know, during your tenure with us, what is one thing that you enjoyed the most?"
 ${projectDetails.length > 0 ? `4. "I saw you worked on [specific project]. Tell me about that."` : ''}
-5. "How was your team and manager experience?"
-6. "Any frustrations?"
-7. "What would you change?"
-8. "Advice for improving ${domain}?"
-9. "Knowledge transfer needs?"
-10. "Anything else to share?"
-11. "Thank you. Best of luck!"
+5. "How was your experience with team and working with your reporting manager?"
+6. "Any challenges or issues you would want the company to improve in the existing process?"
+7. "Knowledge transfer needs?"
+8. "Anything else to share?"
+9. "Thank you. Best of luck!"
 
 Be natural, specific, empathetic. 10-15 min.
     `.trim();
